@@ -34,74 +34,87 @@ unsigned long Timeout_Duration = 5100000; //5.1 seconds
 void setup() 
 {
   //SetAllPinsLow();
-  //pinMode(LED_BUILTIN, OUTPUT); //LED Connected to Pin 7
   pinMode(usPwPin, INPUT);
   pinMode(usPowerPin, OUTPUT);
   digitalWrite(usPowerPin, LOW);
-  
+
+  #ifdef DEBUG
   Serial.begin(9600);
-  Serial.println("setup");
-  Serial.print(F("Connecting to NB-IoT module...\n"));
-  //digitalWrite(LED_BUILTIN, HIGH);
+  Debugln(F("Setup"));
+  Debugln(F("Connecting to NB-IoT module..."));
+  #endif
   ublox.begin(9600);
   nbiot.begin(ublox);
   nbiot.createSocket();
-  //digitalWrite(LED_BUILTIN, LOW);
-  Serial.println(F("NB-IoT module connected."));
-  Serial.flush();
+
+  Debugln(F("NB-IoT module connected."));
+  
+  Sleep(4);
 } 
  
 void loop() 
 {
-  
-  if (nbiot.isConnected()) {
-    // Successfully connected to the network
-    // Send message to remote server
+  if (nbiot.isConnected()) 
+  {
     ReadUsSensor();
     PrintRangeReading();
-    Serial.println(F("Sending data"));
-    //digitalWrite(LED_BUILTIN, HIGH);
+
+    Debugln(F("Sending data"));
+
     String payload = 
         String(rangeReadingMm);
     if (true == nbiot.sendString(remoteIP, REMOTE_PORT, payload)) {
-      Serial.println(F("Successfully sent data: "));
+      Debug(F("Successfully sent data: "));
     } else {
-      Serial.println(F("Failed sending data: "));
+      Debug(F("Failed sending data: "));
     }
-    //digitalWrite(LED_BUILTIN, LOW);
+    Debugln(payload);
   }
 
-  for(int i = 0; i < 2; i++)
-  {
-    Sleep();
-  }
+  Sleep(4);
 }
 
 void ReadUsSensor(){
   digitalWrite(usPowerPin, HIGH);
+  Sleep(1);
   rangeReadingMm = pulseIn(usPwPin, HIGH, Timeout_Duration);
   digitalWrite(usPowerPin, LOW);
 }
 
 void PrintRangeReading(){         
-  Serial.println(rangeReadingMm);
-  Serial.flush();
+  Debugln(String(rangeReadingMm));
 }
 
-void Sleep()
+void Sleep(int iterations)
+{
+  for(int i = 0; i < iterations; i++)
+  {
+    Debugln(F("Sleep 8s"));
+    LowPower.powerDown(SLEEP_8S, ADC_OFF, BOD_OFF);
+  }
+}
+
+void Debugln(String message)
 {
   #ifdef DEBUG
-  Serial.println("Sleep 8s");
+  Serial.println(message);
   Serial.flush();
   #endif
-  LowPower.powerDown(SLEEP_8S, ADC_OFF, BOD_OFF);
+}
+
+void Debug(String message)
+{
+  #ifdef DEBUG
+  Serial.print(message);
+  Serial.flush();
+  #endif
 }
 
 void SetAllPinsLow()
 {
   for (byte i = 0; i <= A5; i++)
   {
-    pinMode (i, OUTPUT);    // changed as per below
-    digitalWrite (i, LOW);  //     ditto
+    pinMode (i, OUTPUT);
+    digitalWrite (i, LOW);
   }
 }
