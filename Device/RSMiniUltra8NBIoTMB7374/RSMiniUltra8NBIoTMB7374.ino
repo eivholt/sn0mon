@@ -33,7 +33,6 @@ unsigned long Timeout_Duration = 5100000; //5.1 seconds
 
 void setup() 
 {
-  //SetAllPinsLow();
   pinMode(usPwPin, INPUT);
   pinMode(usPowerPin, OUTPUT);
   digitalWrite(usPowerPin, LOW);
@@ -75,8 +74,10 @@ void loop()
 }
 
 void ReadUsSensor(){
+  Debugln(F("Enable sensor"));
   digitalWrite(usPowerPin, HIGH);
   Sleep(1);
+  Debugln(F("Take reading"));
   rangeReadingMm = pulseIn(usPwPin, HIGH, Timeout_Duration);
   digitalWrite(usPowerPin, LOW);
 }
